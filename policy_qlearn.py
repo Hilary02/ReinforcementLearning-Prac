@@ -22,7 +22,6 @@ def display_frames_as_gif(frames,post_name):
     anim = animation.FuncAnimation(plt.gcf(), animate, frames=len(frames),interval=20)
     anim.save('anim-'+str(post_name)+'.gif', writer='imagemagick')
 
-
 class QLearn(object):
     def __init__(self, env, alpha, gamma, epsilon, digitize=40):
         self.env = env           # これがOpenAI Gymの環境
@@ -86,14 +85,7 @@ class QLearn(object):
             action = self.act(obs,is_learn = is_record)
             next_obs, reward, done, info = self.env.step(action)
             self.update_q_table(obs, action, next_obs, reward, done) # 現在の状態と得られた情報からQ値を更新
-
-
-            #vvvvvvvvvvvvvvvv
-            obs = next_obs  #<<<
-            #^^^^^^^^^^^^^^^^
-
-
-
+            obs = next_obs  #これを忘れると環境が更新されたことにならない
             episode_reward += reward
 
             # print(step,next_observation, reward, done, info , sep=" ") # 情報を出力するが、見たいなら何らかの条件をつけること。ログが荒れる。
@@ -108,14 +100,12 @@ class QLearn(object):
 
         return episode_reward # 使い道はないが一応返しておく
 
-
-
-    # 学習全体のループ 500rpに1回出力する
+    # 学習全体のループ
     def learn(self,episodes):
 
         for ep in range(episodes+1):
             # if(ep%2000 == 0):
-            if False:  # 出力しないとき
+            if False:  # gif画像で出力しないとき
                 self.frames.clear()  # 記録リストをクリア
                 self.try_episode(is_record = True)
                 display_frames_as_gif(self.frames,ep)
@@ -143,16 +133,11 @@ class QLearn(object):
                 f.write(str(x) + "\n")
             f.close()
 
-    # env.render()
-
-
-
-
 if __name__ == '__main__':
     env = gym.make('MountainCar-v0')
+    env = wrappers.Monitor(env, "./movie_folder", video_callable=(lambda ep: ep % 1000 == 0))
+
 
     model = QLearn(env, alpha=0.2, gamma=0.99, epsilon=0.002, digitize=40)
     model.learn(1000)
     env.close()
-
-
