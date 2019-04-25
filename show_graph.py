@@ -1,13 +1,19 @@
 ### coding: UTF-8
-# MountainCarにおいて、Q学習を進めていき、
-# その結果をgif出力する。
-# Windowsで実行したのでimagemagickが必要。
-# gif出力の参考：https://book.mynavi.jp/manatee/detail/id=88961
+# 出力されたrewardsないし数字列をグラフにして表示する
+# 引数に入力するファイルを記述することで指定できる
+# 引数がない場合、実行ディレクトリのrewards.csvを読み込む
 
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
-f=open('reward.csv')
+args = sys.argv
+
+if len(args) <= 1:
+    f = open('reward.csv')
+else :
+    f = open(args[1])
+
 line=f.readlines()
 f.close()
 
