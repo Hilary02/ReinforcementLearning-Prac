@@ -9,9 +9,11 @@ from gym import wrappers
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import datetime
+import os
 
 # 画像配列を渡して、それをgif画像にするメソッド
-def display_frames_as_gif(frames,post_name):
+def display_frames_as_gif(frames,post_name,save_dir="./"):
     plt.figure(figsize=(frames[0].shape[1]/72.0, frames[0].shape[0]/72.0),dpi=72.0)
     patch = plt.imshow(frames[0])
     plt.axis('off')
@@ -20,7 +22,7 @@ def display_frames_as_gif(frames,post_name):
         patch.set_data(frames[i])
 
     anim = animation.FuncAnimation(plt.gcf(), animate, frames=len(frames),interval=20)
-    anim.save('anim-'+str(post_name)+'.gif', writer='imagemagick')
+    anim.save(save_dir + 'anim-'+str(post_name)+'.gif', writer='imagemagick')
 
 class QLearn(object):
     def __init__(self, env, alpha, gamma, epsilon, digitize=40):
@@ -33,10 +35,21 @@ class QLearn(object):
         self.n_actions = env.action_space.n  # とりうる行動の数
         self.q_table = np.zeros((digitize, digitize, self.n_actions)) # Q値を保存するテーブル。40,40,3を想定
 
+        # 右に進めばいいという思い込みを与えてみる
+        self.q_table[:,:,0:1]=-30
         self.episode_count = 0
 
+        save_dir_base ="{}-a{}g{}e{}d{}".format(datetime.datetime.today().strftime("%y%m%d"),alpha,gamma,epsilon,digitize)
+        self.save_dir=save_dir_base+"/"
         self.frames=[]   # 学修の様子を画像として出力するための記録フレームリスト
         self.rewards=[]  # 報酬を記録するリスト
+
+        for i in range(1,20):
+            if os.path.isdir(self.save_dir) == False:
+                os.makedirs(self.save_dir, exist_ok=True)
+                break
+            else:
+                self.save_dir="{}-{}/".format(save_dir_base,i)
 
     # 観測結果がq_tableのどこか計算
     def observe_to_discrete (self, obs):
@@ -91,8 +104,7 @@ class QLearn(object):
             # print(step,next_observation, reward, done, info , sep=" ") # 情報を出力するが、見たいなら何らかの条件をつけること。ログが荒れる。
 
             if done:    # doneがTrueになったら１エピソード終了
-                if self.episode_count%100 == 0:
-
+                if self.episode_count%1000 == 0:
                     print('episode: {}, total_reward: {}'.format(self.episode_count, episode_reward))
                 self.rewards.append(episode_reward)
                 self.episode_count += 1
@@ -104,17 +116,18 @@ class QLearn(object):
     def learn(self,episodes):
 
         for ep in range(episodes+1):
-            # if(ep%2000 == 0):
-            if False:  # gif画像で出力しないとき
+            if(ep%2000 == 0):
+            # if False:  # gif画像で出力しないとき
                 self.frames.clear()  # 記録リストをクリア
                 self.try_episode(is_record = True)
-                display_frames_as_gif(self.frames,ep)
+                display_frames_as_gif(self.frames, ep, self.save_dir)
             else:
                 self.try_episode(is_record = False)
         self.env.close() # 学習が終わったので、環境も終了。
 
         # クラス内部に保存されてる学習結果とか出力するならここ
-        path = './q_table.csv'
+        # note: csv出力に難あり
+        path = self.save_dir+ 'q_table.csv'
         with open(path, mode='w') as f:
             i = 0
             for x in self.q_table:
@@ -127,7 +140,7 @@ class QLearn(object):
                     i = 0
             f.close()
 
-        path = './reward.csv'
+        path = self.save_dir+ 'reward.csv'
         with open(path, mode='w') as f:
             for x in self.rewards:
                 f.write(str(x) + "\n")
@@ -135,9 +148,10 @@ class QLearn(object):
 
 if __name__ == '__main__':
     env = gym.make('MountainCar-v0')
-    env = wrappers.Monitor(env, "./movie_folder", video_callable=(lambda ep: ep % 1000 == 0))
 
+    # windows環境ではコメントアウトする
+    # env = wrappers.Monitor(env, "./movie_folder", video_callable=(lambda ep: ep % 1000 == 0))
 
     model = QLearn(env, alpha=0.2, gamma=0.99, epsilon=0.002, digitize=40)
-    model.learn(1000)
+    model.learn(10000)
     env.close()
