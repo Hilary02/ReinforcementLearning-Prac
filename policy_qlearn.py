@@ -39,8 +39,9 @@ class QLearn(object):
         self.q_table[:,:,0:1]=-30
         self.episode_count = 0
 
-        save_dir_base ="{}-a{}g{}e{}d{}".format(datetime.datetime.today().strftime("%y%m%d"),alpha,gamma,epsilon,digitize)
-        self.save_dir=save_dir_base+"/"
+        save_dir_env="MountainCar"
+        save_dir_param ="{}-a{}g{}e{}d{}".format(datetime.datetime.today().strftime("%y%m%d"),alpha,gamma,epsilon,digitize)
+        self.save_dir=save_dir_env+"/"+save_dir_param+"/"
         self.frames=[]   # 学修の様子を画像として出力するための記録フレームリスト
         self.rewards=[]  # 報酬を記録するリスト
 
@@ -49,7 +50,7 @@ class QLearn(object):
                 os.makedirs(self.save_dir, exist_ok=True)
                 break
             else:
-                self.save_dir="{}-{}/".format(save_dir_base,i)
+                self.save_dir="{}-{}/".format(save_dir_env+"/"+save_dir_param,i)
 
     # 観測結果がq_tableのどこか計算
     def observe_to_discrete (self, obs):
