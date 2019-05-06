@@ -8,6 +8,8 @@ verify_ssl = true
 [packages]
 gym = {git = "https://github.com/openai/gym.git"}
 matplotlib = "*"
+tensorflow = "*"
+keras = "*"
 
 [requires]
 python_version = "3.6"
