@@ -6,10 +6,14 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-gym = {git = "https://github.com/openai/gym.git"}
+gym = {extras = ["atari"],version = "*"}
+tensorflow = "==1.13.1"
+keras = "==2.1.6"
+opencv-python = "*"
+scikit-image = "*"
 matplotlib = "*"
-tensorflow = "*"
-keras = "*"
+pandas = "*"
+tqdm = "*"
 
 [requires]
 python_version = "3.6"
